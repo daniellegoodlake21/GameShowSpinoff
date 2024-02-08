@@ -1,8 +1,13 @@
 package danielle.projects.gameshowspinoff.screen
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import danielle.projects.gameshowspinoff.util.ColorBarState
+import danielle.projects.gameshowspinoff.model.ColorBarStateItem
+import danielle.projects.gameshowspinoff.util.GameState
+import danielle.projects.gameshowspinoff.util.MoneyLadderTimer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,83 +17,105 @@ import javax.inject.Inject
 @HiltViewModel
 class MoneyLadderViewModel @Inject constructor(): ViewModel() {
 
+    private val _gameState = MutableStateFlow(GameState.DIAL_IN_ANSWER)
+    val gameState = _gameState.asStateFlow()
+
     private val _totalStepsClimbed = MutableStateFlow(0)
     val totalStepsClimbed = _totalStepsClimbed.asStateFlow()
 
-    private val _money = MutableStateFlow(0.0f) // in £ GBP
-    val money = _money.asStateFlow()
+    private val _money = MutableStateFlow(0.0) // in £ GBP
+    val moneyTooltip = MutableStateFlow("£%.2f".format(_money.value))
 
     private val _lives = MutableStateFlow(0)
     val lives = _lives.asStateFlow()
 
-    private var lostGame = false
+
+    private var moneyLadderTimer: MoneyLadderTimer? = null
 
     // map of which bars being reached or surpassed give which money on receipt of an exact answer
-    private val moneyCheckpoints: Map<Int, Float> = mapOf(10 to 1f, 20 to 1.5f, 30 to 2f, 40 to 4f, 50 to 8f, 60 to 12.5f, 70 to 20f, 80 to 30f, 90 to 45f, 100 to 60f)
+    val moneyCheckpoints: Map<Int, Double> = mapOf(10 to 1.0, 20 to 1.5, 30 to 2.0, 40 to 4.0, 50 to 8.0, 60 to 12.5, 70 to 20.0, 80 to 30.0, 90 to 45.0, 99 to 60.0)
+
+
+    val tooltip = MutableStateFlow("Waiting for numeric answer...")
+
+    var colorBarStates = mutableStateListOf<ColorBarStateItem>()
+
+    private fun getInitialLadderBars(): MutableList<ColorBarStateItem>
+    {
+        val stateItems = mutableListOf<ColorBarStateItem>()
+        for (i in 0 until 100) {
+            stateItems.add(ColorBarStateItem(i, ColorBarState.NOT_YET_REACHED))
+        }
+        return stateItems
+    }
+
+    init {
+        colorBarStates.addAll(getInitialLadderBars())
+    }
+
+    // set lives at the beginning
+    fun setLives(startLives: Int) {
+        _lives.value = startLives
+    }
+
+    fun addLives(newLives: Int) {
+        _lives.value += newLives
+    }
 
     // bank the money when an exact answer is given
-    private fun bankMoney(moneyToBank: Float) {
-        _money.value = moneyToBank
+    fun bankMoney(moneyCheckpoint: Int) {
+        val moneyToBank = moneyCheckpoints[moneyCheckpoint]
+        moneyToBank?.let {
+            _money.value = moneyToBank
+            moneyTooltip.value = "£%.2f".format(_money.value)
+        }
     }
 
-    private fun loseGame() {
-        lostGame = true
+    fun loseGame() {
+        setGameState(GameState.LOST_GAME)
+        setTooltip("Lost Game! Keep half the money.")
         _money.value /= 2 // in this version of the game, you still win half the money you have banked even if you lose
+        moneyTooltip.value = "£%.2f".format(_money.value)
     }
 
-    /* set the total steps climbed: the result is either
-    if still in the game and exact answer:
-        - the number of user steps (which in this case will be the same as the correct number)
-    or if still in the game but losing lives:
-        - the correct number of steps
-    or  if losing the game due to an answer too high
-        - the correct number of steps plus one
-    or if losing the game due to losing too many lives
-        - the number of lives left minus the difference between the current step and the correct number of steps */
-    fun moveUpLadder(userStepsToClimb: Int, correctNumberOfSteps: Int){
-        val exactAnswer = userStepsToClimb == correctNumberOfSteps
-        var step = 0
-        var moneyCheckpointPassed: Int? = null
-        while (step < userStepsToClimb) {
-            step++
-            viewModelScope.launch {
-                delay(500) // delay for half a second after each step
-            }
-            // check if money checkpoint is passed
-            if (moneyCheckpoints.containsKey(step + _totalStepsClimbed.value))
-            {
-                moneyCheckpointPassed = step
-            }
-            // correctNumberOfSteps is simply the numerical answer to the current question (it is NOT the total overall)
-            if (step > correctNumberOfSteps || _lives.value - correctNumberOfSteps - _totalStepsClimbed.value < 0)
-            {
-                loseGame()
-                break
-            }
+    // handles exact answers and losing lives
+    fun playerMoveResults() {
+        moneyLadderTimer?.livesLostTimer?.start()
+    }
+    fun playerMove(userStepsToClimb: Int, correctNumberOfSteps: Int){
+        moneyLadderTimer = MoneyLadderTimer(moneyLadderViewModel = this, userNumberOfSteps = userStepsToClimb, correctNumberOfSteps = correctNumberOfSteps)
+        moneyLadderTimer?.playerMoveTimer?.start() /* handles the initial climb before losing lives
+        and loses the game if and when the player's step count reaches one over the exact answer */
+    }
+
+    fun setTooltip(newTooltip: String) {
+        tooltip.value = newTooltip
+    }
+
+    fun setColorBarState(colorBarPosition: Int, newState: ColorBarState, increment: Boolean = true) {
+        colorBarStates[colorBarPosition] = ColorBarStateItem(colorBarPosition, newState)
+        if (increment) {
+            _totalStepsClimbed.value++
         }
-        // if losing lives but still in the game
-        if (!lostGame) {
-            if (exactAnswer) {
-                // get highest money-banking bar went through in the answer as moving up the ladder
-                if (moneyCheckpointPassed != null) {
-                    // definitely not null as checked against beforehand, without changing any values
-                    val moneyToBank = moneyCheckpoints[moneyCheckpointPassed]!!
-                    bankMoney(moneyToBank = moneyToBank)
-                }
-            }
-            else {
-                // lose lives
-                var remainingExtraSteps = correctNumberOfSteps - userStepsToClimb
-                while (remainingExtraSteps > 0) {
-                    viewModelScope.launch {
-                        delay(1000) // delay for 1 second after each life lost
-                    }
-                    _totalStepsClimbed.value++
-                    remainingExtraSteps--
-                }
-            }
+    }
+
+    fun setGameState(newGameState: GameState) {
+        _gameState.value = newGameState
+    }
+
+    fun flashGoldCorrect() {
+        for (i in 0 until totalStepsClimbed.value) {
+            setColorBarState(i, ColorBarState.CORRECT_GOLD, increment = false)
         }
-        _totalStepsClimbed.value += step
+        viewModelScope.launch {
+            delay(1500) // 1.5 seconds gold
+            for (i in 0 until totalStepsClimbed.value) {
+                setColorBarState(i, ColorBarState.PLAYER_INPUT_GRAY)
+            }
+            setGameState(GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION)
+        }
+
+
     }
 
 }

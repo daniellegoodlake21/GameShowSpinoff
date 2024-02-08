@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,22 +20,22 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import danielle.projects.gameshowspinoff.R
+import danielle.projects.gameshowspinoff.util.ColorBarState
 
-
-enum class ColorBarState {
-    NOT_YET_REACHED,
-    LOST_LIFE_RED,
-    PLAYER_INPUT_BLUE,
-    CORRECT_GOLD
-}
 
 @Composable
 @Preview
-fun ColorBarComponent(barPosition: Int = 1, moneyCheckpointValue: Double? = 10.0, colorBarState: MutableState<ColorBarState> = mutableStateOf(ColorBarState.NOT_YET_REACHED)) {
-    val color = when(colorBarState.value){
-        ColorBarState.NOT_YET_REACHED -> Color.DarkGray
+fun ColorBarComponent(
+    barPosition: Int = 1,
+    moneyCheckpointValue: Double? = 10.0,
+    initialColorBarState: ColorBarState = ColorBarState.NOT_YET_REACHED,
+    onChange: () -> Unit = {}
+) {
+
+    val color = when(initialColorBarState){
+        ColorBarState.NOT_YET_REACHED -> Color(ContextCompat.getColor(LocalContext.current, R.color.dark_blue))
         ColorBarState.LOST_LIFE_RED -> Color.Red
-        ColorBarState.PLAYER_INPUT_BLUE -> Color(ContextCompat.getColor(LocalContext.current, R.color.dark_blue))
+        ColorBarState.PLAYER_INPUT_GRAY -> Color.DarkGray
         ColorBarState.CORRECT_GOLD -> Color(ContextCompat.getColor(LocalContext.current, R.color.gold))
     }
     val isCheckpoint = moneyCheckpointValue != null
@@ -58,4 +56,5 @@ fun ColorBarComponent(barPosition: Int = 1, moneyCheckpointValue: Double? = 10.0
             }
         }
     }
+    onChange()
 }
