@@ -22,7 +22,7 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
             moneyLadderViewModel.setTooltip("$barsClimbed")
 
             // if above (even by one)...
-            if (initialPosition + correctNumberOfSteps < barsClimbed) {
+            if (initialPosition + correctNumberOfSteps - 1 < barsClimbed) {
                 moneyLadderViewModel.setColorBarState(barsClimbed, ColorBarState.LOST_LIFE_RED)
                 moneyLadderViewModel.loseGame()
                 cancel()
@@ -56,7 +56,7 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
                     moneyLadderViewModel.setLives(moneyLadderViewModel.lives.value - 1)
                     livesLostSoFarCount++
                     moneyLadderViewModel.setTooltip("Lost $livesLostSoFarCount Lives...")
-                    if (livesLostSoFarCount > moneyLadderViewModel.lives.value)
+                    if (moneyLadderViewModel.lives.value == -1)
                     {
                         moneyLadderViewModel.loseGame()
                         cancel()

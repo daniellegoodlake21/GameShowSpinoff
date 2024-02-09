@@ -4,8 +4,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import danielle.projects.gameshowspinoff.util.ColorBarState
 import danielle.projects.gameshowspinoff.model.ColorBarStateItem
+import danielle.projects.gameshowspinoff.util.ColorBarState
 import danielle.projects.gameshowspinoff.util.GameState
 import danielle.projects.gameshowspinoff.util.MoneyLadderTimer
 import kotlinx.coroutines.delay
