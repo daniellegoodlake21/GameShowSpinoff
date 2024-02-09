@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import danielle.projects.gameshowspinoff.model.Question
 import danielle.projects.gameshowspinoff.model.QuestionSet
 import kotlinx.coroutines.flow.Flow
 
@@ -29,5 +28,5 @@ interface QuestionSetDatabaseDao {
     @Query("DELETE FROM question_set_table")
     suspend fun deleteAll()
     @Delete
-    suspend fun deleteQuestionSet(questionSet: Question)
+    suspend fun deleteQuestionSet(questionSet: QuestionSet)
 }

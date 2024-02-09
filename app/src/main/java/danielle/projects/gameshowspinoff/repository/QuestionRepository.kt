@@ -16,6 +16,7 @@ class QuestionRepository @Inject constructor(private val questionDatabaseDao: Qu
         .conflate()
     suspend fun addQuestion(question: Question) = questionDatabaseDao.insert(question)
 
+    suspend fun updateQuestion(question: Question) = questionDatabaseDao.update(question)
     suspend fun deleteQuestion(question: Question) = questionDatabaseDao.deleteQuestion(question)
 
     suspend fun deleteAllQuestionsInSet(setId: Int) = questionDatabaseDao.deleteAllQuestionsBySetId(setId)
@@ -24,5 +25,9 @@ class QuestionRepository @Inject constructor(private val questionDatabaseDao: Qu
 
     suspend fun getQuestionSetById(setId: Int): QuestionSet = questionSetDatabaseDao.getQuestionSetById(setId)
 
+    suspend fun updateQuestionSet(questionSet: QuestionSet) = questionSetDatabaseDao.update(questionSet)
 
+    suspend fun deleteAllQuestionSets() = questionSetDatabaseDao.deleteAll()
+
+    suspend fun deleteQuestionSetById(questionSet: QuestionSet) = questionSetDatabaseDao.deleteQuestionSet(questionSet)
 }
