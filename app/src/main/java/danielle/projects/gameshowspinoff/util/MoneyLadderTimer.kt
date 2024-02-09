@@ -37,7 +37,7 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
         }
 
         override fun onFinish() {
-            moneyLadderViewModel.setTooltip("Waiting to Reveal Answer")
+            moneyLadderViewModel.setTooltip("")
             moneyLadderViewModel.setGameState(GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_RESULTS)
         }
 
@@ -53,6 +53,7 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
 
                 if (livesLostSoFarCount < livesLost) {
                     moneyLadderViewModel.setColorBarState(barsClimbed, ColorBarState.LOST_LIFE_RED)
+                    moneyLadderViewModel.setLives(moneyLadderViewModel.lives.value - 1)
                     livesLostSoFarCount++
                     moneyLadderViewModel.setTooltip("Lost $livesLostSoFarCount Lives...")
                     if (livesLostSoFarCount > moneyLadderViewModel.lives.value)
@@ -78,6 +79,7 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
             else
             {
                 moneyLadderViewModel.setTooltip("$livesLost Lives Lost")
+                moneyLadderViewModel.setGameState(GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION)
             }
         }
     }

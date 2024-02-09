@@ -13,28 +13,34 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import danielle.projects.gameshowspinoff.components.MoneyLadderComponent
+import danielle.projects.gameshowspinoff.components.QuestionComponent
 import danielle.projects.gameshowspinoff.util.GameState
+import kotlin.math.absoluteValue
 
 @Composable
 @Preview(showBackground=true)
-fun MoneyLadderScreen(startLives: Int = 25){
+fun MoneyLadderScreen(){
     val moneyLadderViewModel: MoneyLadderViewModel = viewModel()
     val ladderContents = moneyLadderViewModel.colorBarStates
     val position by moneyLadderViewModel.totalStepsClimbed.collectAsState()
     val tooltip by moneyLadderViewModel.tooltip.collectAsState()
     val gameState by moneyLadderViewModel.gameState.collectAsState()
     val money by moneyLadderViewModel.moneyTooltip.collectAsState()
+    val lives by moneyLadderViewModel.lives.collectAsState()
+    val question by moneyLadderViewModel.question.collectAsState("Question")
 
-    moneyLadderViewModel.setLives(startLives = startLives)
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         MoneyLadderComponent(
@@ -44,19 +50,7 @@ fun MoneyLadderScreen(startLives: Int = 25){
         )
         if (gameState == GameState.DIAL_IN_ANSWER)
         {
-            Row(modifier = Modifier.padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Button(onClick = { moneyLadderViewModel.playerMove(22, 22) }) {
-                    Text(text = "Exact Cash", style = TextStyle(fontFamily = FontFamily.Monospace))
-                }
-                Spacer(modifier = Modifier.padding(2.dp))
-                Button(onClick = { moneyLadderViewModel.playerMove(5, 3) }) {
-                    Text(text = "Game Over", style = TextStyle(fontFamily = FontFamily.Monospace))
-                }
-                Spacer(modifier = Modifier.padding(2.dp))
-                Button(onClick = { moneyLadderViewModel.playerMove(12, 50) }) {
-                    Text(text = "Lose Lives", style = TextStyle(fontFamily = FontFamily.Monospace))
-                }
-            }
+            QuestionComponent(question, moneyLadderViewModel)
         }
 
         Row(modifier = Modifier.padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -66,16 +60,42 @@ fun MoneyLadderScreen(startLives: Int = 25){
                     Text(text ="Reveal Answer", style = TextStyle(fontFamily = FontFamily.Monospace))
                 }
             }
+            else if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION) {
+                Button(onClick = { moneyLadderViewModel.setGameState(GameState.DIAL_IN_ANSWER) }) {
+                    Text(text ="Next Question", style = TextStyle(fontFamily = FontFamily.Monospace))
+                }
+            }
 
+            // banked money and lives
             Surface(modifier = Modifier.padding(12.dp)) {
-                Column {
+                Column(horizontalAlignment = Alignment.CenterHorizontally){
                     Text(text = tooltip, style = TextStyle(fontFamily = FontFamily.Monospace))
-                    Text(text = money, style = TextStyle(fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = TextUnit(22f, TextUnitType.Sp)
+
+                    Row {
+                        Text(text = buildAnnotatedString {
+                            withStyle(style = SpanStyle()) {
+                                append("Money: ")
+                            }
+                            withStyle(style = SpanStyle(fontSize = TextUnit(20f, TextUnitType.Sp), fontWeight = FontWeight.ExtraBold)) {
+                                append(money)
+                            }}, style = TextStyle(fontFamily = FontFamily.Monospace,
+                            fontSize = TextUnit(18f, TextUnitType.Sp)
+                        ))
+                        Spacer(modifier = Modifier.padding(horizontal = 20.dp))
+                    Text(text = buildAnnotatedString {
+                        withStyle(style = SpanStyle()) {
+                            append("Lives: ")
+                        }
+                        withStyle(style = SpanStyle(fontSize = TextUnit(20f, TextUnitType.Sp), fontWeight = FontWeight.ExtraBold)) {
+                            append("${lives.absoluteValue}")
+                        }
+                    }, style = TextStyle(fontFamily = FontFamily.Monospace,
+                        fontSize = TextUnit(18f, TextUnitType.Sp)
                     ))
+                    }
                 }
             }
         }
     }
 }
+
