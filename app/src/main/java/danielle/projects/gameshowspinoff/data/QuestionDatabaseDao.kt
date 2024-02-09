@@ -16,10 +16,10 @@ interface QuestionDatabaseDao {
     fun getAllQuestions(): Flow<List<Question>>
 
     @Query("SELECT * FROM question_table WHERE id =:id")
-    suspend fun getQuestionById(id: Int): Question
+    fun getQuestionById(id: Int): Question
 
     @Query("SELECT * FROM question_table WHERE id =:questionSetId")
-    suspend fun getQuestionsBySetId(questionSetId: Int): Flow<List<Question>>
+    fun getQuestionsBySetId(questionSetId: Int): Flow<List<Question>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(question: Question)
