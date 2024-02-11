@@ -9,8 +9,8 @@ import androidx.room.PrimaryKey
 data class Question(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "question_text")
-    val questionText: String,
+    var questionText: String,
     @ColumnInfo(name = "correct_answer")
-    val correctAnswer: Int,
+    var correctAnswer: Int,
     @ColumnInfo(name = "question_set_id")
     val questionsSetId: Int)

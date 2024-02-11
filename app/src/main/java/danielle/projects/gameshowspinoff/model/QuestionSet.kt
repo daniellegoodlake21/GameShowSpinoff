@@ -8,4 +8,4 @@ import androidx.room.PrimaryKey
 data class QuestionSet(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "question_set_label")
-    val label: String)
+    var label: String)

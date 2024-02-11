@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
-import danielle.projects.gameshowspinoff.screen.MoneyLadderScreen
+import danielle.projects.gameshowspinoff.screen.HomeScreen
 import danielle.projects.gameshowspinoff.ui.theme.GameShowSpinoffTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,5 +20,5 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun GameShowApp(){
-    MoneyLadderScreen()
+    HomeScreen()
 }

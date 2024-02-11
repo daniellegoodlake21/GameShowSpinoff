@@ -12,13 +12,17 @@ import javax.inject.Inject
 
 class QuestionRepository @Inject constructor(private val questionDatabaseDao: QuestionDatabaseDao, private val questionSetDatabaseDao: QuestionSetDatabaseDao) {
 
+
     fun getAllQuestionsInSet(setId: Int): Flow<List<Question>> = questionDatabaseDao.getQuestionsBySetId(setId).flowOn(Dispatchers.IO)
         .conflate()
+
     suspend fun addQuestion(question: Question) = questionDatabaseDao.insert(question)
 
     suspend fun updateQuestion(question: Question) = questionDatabaseDao.update(question)
+
     suspend fun deleteQuestion(question: Question) = questionDatabaseDao.deleteQuestion(question)
 
+    suspend fun addQuestionSet(questionSet: QuestionSet) = questionSetDatabaseDao.insert(questionSet)
     suspend fun deleteAllQuestionsInSet(setId: Int) = questionDatabaseDao.deleteAllQuestionsBySetId(setId)
 
     fun getAllQuestionSets(): Flow<List<QuestionSet>> = questionSetDatabaseDao.getAllQuestionSets()

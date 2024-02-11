@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import danielle.projects.gameshowspinoff.model.ColorBarStateItem
+import danielle.projects.gameshowspinoff.model.Question
 import danielle.projects.gameshowspinoff.util.ColorBarState
 import danielle.projects.gameshowspinoff.util.GameState
 import danielle.projects.gameshowspinoff.util.MoneyLadderTimer
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MoneyLadderViewModel @Inject constructor(): ViewModel() {
 
-    private val _question = MutableStateFlow("Question")
+    private val _question = MutableStateFlow(Question(1, "Test Question", 10, 1))
+
     val question = _question.asStateFlow()
 
     private val _numericAnswer = MutableStateFlow(-1) // all answers in this game are integers

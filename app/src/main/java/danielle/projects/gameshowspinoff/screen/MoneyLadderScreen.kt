@@ -39,7 +39,7 @@ fun MoneyLadderScreen(){
     val gameState by moneyLadderViewModel.gameState.collectAsState()
     val money by moneyLadderViewModel.moneyTooltip.collectAsState()
     val lives by moneyLadderViewModel.lives.collectAsState()
-    val question by moneyLadderViewModel.question.collectAsState("Question")
+    val question by moneyLadderViewModel.question.collectAsState()
 
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -50,7 +50,7 @@ fun MoneyLadderScreen(){
         )
         if (gameState == GameState.DIAL_IN_ANSWER)
         {
-            QuestionComponent(question, moneyLadderViewModel)
+            QuestionComponent(question.questionText, moneyLadderViewModel)
         }
 
         Row(modifier = Modifier.padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
