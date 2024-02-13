@@ -18,6 +18,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -27,28 +30,35 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.core.text.isDigitsOnly
 import danielle.projects.gameshowspinoff.model.Question
 import danielle.projects.gameshowspinoff.screen.QuestionBuilderViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun QuestionInfoComponent(questionBuilderViewModel: QuestionBuilderViewModel, question: Question? = Question(id = 1, questionText = "How many years since the year 2000?", correctAnswer = 24, questionsSetId = 1)) {
+fun QuestionInfoComponent(questionBuilderViewModel: QuestionBuilderViewModel, question: Question?) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    Card(colors = CardDefaults.cardColors(containerColor = Color.LightGray), modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    val questionTextInput = rememberSaveable { mutableStateOf(
+        question?.questionText ?: ""
+    ) }
+    val correctAnswerInput = rememberSaveable { mutableStateOf(question?.correctAnswer ?: 1) }
+    val correctAnswerInputAsString = remember {
+        mutableStateOf(correctAnswerInput.value.toString())
+    }
+    Card(colors = CardDefaults.cardColors(containerColor = Color.LightGray), modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp)) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
             if (question != null) {
                 OutlinedTextField(
-                    value = TextFieldValue(question.questionText),
+                    value = questionTextInput.value,
                     onValueChange = { newText ->
-                        if (newText.text.isNotEmpty()) {
+                            questionTextInput.value = newText
+                            questionBuilderViewModel.updateQuestion(question = question.copy(questionText = questionTextInput.value))
 
-                            question.questionText = newText.text
-                            questionBuilderViewModel.updateQuestion(question = question)
-                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -58,13 +68,12 @@ fun QuestionInfoComponent(questionBuilderViewModel: QuestionBuilderViewModel, qu
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(onSend = { keyboardController?.hide() },
-                        onDone = { keyboardController?.hide() },
-                        onGo = { keyboardController?.hide() },
-                        onNext = { keyboardController?.hide() })
+                        onDone = { keyboardController?.hide()},
+                        onNext = { keyboardController?.hide()})
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
                 OutlinedTextField(
-                    value = TextFieldValue(question.correctAnswer.toString()),
+                    value = correctAnswerInputAsString.value,
                     textStyle = TextStyle(
                         fontFamily = FontFamily.Monospace,
                         fontSize = TextUnit(16f, TextUnitType.Sp)
@@ -76,13 +85,15 @@ fun QuestionInfoComponent(questionBuilderViewModel: QuestionBuilderViewModel, qu
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Done
                     ),
-                    keyboardActions = KeyboardActions(onSend = { keyboardController?.hide() },
+                    keyboardActions = KeyboardActions(
                         onDone = { keyboardController?.hide() },
-                        onGo = { keyboardController?.hide() },
                         onNext = { keyboardController?.hide() }),
                     onValueChange = { newCorrectAnswer ->
-                        question.correctAnswer = newCorrectAnswer.text.toInt()
-                        questionBuilderViewModel.updateQuestion(question = question)
+                        correctAnswerInputAsString.value = newCorrectAnswer
+                        if (newCorrectAnswer.isNotEmpty() && newCorrectAnswer.isDigitsOnly()) {
+                            correctAnswerInput.value = newCorrectAnswer.toInt()
+                            questionBuilderViewModel.updateQuestion(question = question.copy(correctAnswer = correctAnswerInput.value))}
+
                     }
                 )
                 Spacer(modifier = Modifier.padding(12.dp))
@@ -95,6 +106,7 @@ fun QuestionInfoComponent(questionBuilderViewModel: QuestionBuilderViewModel, qu
                             .size(32.dp)
                     )
                 }
+                Spacer(modifier = Modifier.padding(12.dp))
             }
         }
     }

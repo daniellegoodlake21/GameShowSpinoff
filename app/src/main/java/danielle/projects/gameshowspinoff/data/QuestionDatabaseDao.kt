@@ -18,7 +18,7 @@ interface QuestionDatabaseDao {
     @Query("SELECT * FROM question_table WHERE id =:id")
     fun getQuestionById(id: Int): Question
 
-    @Query("SELECT * FROM question_table WHERE id =:questionSetId")
+    @Query("SELECT * FROM question_table WHERE question_set_id =:questionSetId")
     fun getQuestionsBySetId(questionSetId: Int): Flow<List<Question>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -19,20 +19,20 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import danielle.projects.gameshowspinoff.components.MoneyLadderComponent
 import danielle.projects.gameshowspinoff.components.QuestionComponent
+import danielle.projects.gameshowspinoff.navigation.GameShowScreens
 import danielle.projects.gameshowspinoff.util.GameState
 import kotlin.math.absoluteValue
 
 @Composable
-@Preview(showBackground=true)
-fun MoneyLadderScreen(){
-    val moneyLadderViewModel: MoneyLadderViewModel = viewModel()
+fun MoneyLadderScreen(navController: NavController){
+    val moneyLadderViewModel: MoneyLadderViewModel = hiltViewModel()
     val ladderContents = moneyLadderViewModel.colorBarStates
     val position by moneyLadderViewModel.totalStepsClimbed.collectAsState()
     val tooltip by moneyLadderViewModel.tooltip.collectAsState()
@@ -54,8 +54,7 @@ fun MoneyLadderScreen(){
         }
 
         Row(modifier = Modifier.padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-            if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_RESULTS)
-            {
+            if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_RESULTS) {
                 Button(onClick = { moneyLadderViewModel.playerMoveResults() }) {
                     Text(text ="Reveal Answer", style = TextStyle(fontFamily = FontFamily.Monospace))
                 }
@@ -65,7 +64,13 @@ fun MoneyLadderScreen(){
                     Text(text ="Next Question", style = TextStyle(fontFamily = FontFamily.Monospace))
                 }
             }
-
+            else if (gameState == GameState.WON_GAME || gameState == GameState.LOST_GAME) {
+                Column(horizontalAlignment =  Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
+                    Button(onClick = { navController.navigate(GameShowScreens.HomeScreen.name) }) {
+                        Text(text ="Return to Menu", style = TextStyle(fontFamily = FontFamily.Monospace))
+                    }
+                }
+            }
             // banked money and lives
             Surface(modifier = Modifier.padding(12.dp)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally){

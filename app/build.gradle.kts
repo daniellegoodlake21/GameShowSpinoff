@@ -68,6 +68,10 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    val navVersion = "2.7.6"
+    // navigation
+    implementation("androidx.navigation:navigation-compose:$navVersion")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     // hilt
     implementation("com.google.dagger:hilt-android:2.44")
     // observe as state

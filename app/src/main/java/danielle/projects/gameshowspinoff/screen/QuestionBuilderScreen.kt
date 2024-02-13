@@ -1,13 +1,12 @@
 package danielle.projects.gameshowspinoff.screen
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -22,37 +21,76 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import danielle.projects.gameshowspinoff.R
 import danielle.projects.gameshowspinoff.components.QuestionInfoComponent
-import danielle.projects.gameshowspinoff.model.QuestionSet
+import danielle.projects.gameshowspinoff.model.Question
 
 @Composable
-fun QuestionBuilderScreen(questionSet: QuestionSet) {
+fun QuestionBuilderScreen(navController: NavController, questionSetId: Int?) {
     val listState = rememberLazyListState()
-    val questionBuilderViewModel: QuestionBuilderViewModel = viewModel()
-    questionBuilderViewModel.getQuestionsListByQuestionSet(questionSet)
-    val questions by questionBuilderViewModel.currentQuestionList.collectAsState()
-    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    val questionBuilderViewModel: QuestionBuilderViewModel = hiltViewModel()
+    if (questionSetId != null) {
+        questionBuilderViewModel.getQuestionsListByQuestionSet(questionSetId)
+        val questions by questionBuilderViewModel.currentQuestionList.collectAsState()
         // List of questions to edit
         LazyColumn(state = listState,
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .fillMaxWidth()){
-            items(questions){ item ->
-            QuestionInfoComponent(questionBuilderViewModel = questionBuilderViewModel, question = item)
-        }}
-        // Back button
-        Button(colors = ButtonDefaults.buttonColors(
-            containerColor = Color(
-                ContextCompat.getColor(
-                    LocalContext.current, R.color.dark_blue
+                .padding(16.dp)
+                .fillMaxWidth()) {
+            items(questions) { item ->
+                QuestionInfoComponent(
+                    questionBuilderViewModel = questionBuilderViewModel,
+                    question = item
                 )
-            ), contentColor = Color.White
-        ), onClick = { /* Navigate to question set list screen */ }) {
-            Text(text = "Back", style = TextStyle(fontFamily = FontFamily.Monospace))
+
+            }
+            item {
+                Column {
+                    Spacer(modifier = Modifier.padding(16.dp))
+                    // new question button
+                    Button(colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(
+                            ContextCompat.getColor(
+                                LocalContext.current, R.color.gold
+                            )
+                        ), contentColor = Color.White
+                    ),
+                        onClick = {
+                            questionBuilderViewModel.addQuestion(
+                                Question(
+                                    questionText = "Add Question Text",
+                                    correctAnswer = 1,
+                                    questionsSetId = questionSetId
+                                )
+                            )
+                        }) {
+                        Text(
+                            text = "New Question",
+                            style = TextStyle(fontFamily = FontFamily.Monospace)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.padding(16.dp))
+                // back button
+                Button(colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(
+                        ContextCompat.getColor(
+                            LocalContext.current, R.color.dark_blue
+                        )
+                    )
+                ),
+                    onClick = {
+                        navController.popBackStack()
+                    }) {
+                    Text(
+                        text = "Back",
+                        style = TextStyle(fontFamily = FontFamily.Monospace)
+                    )
+                }
+            }
         }
     }
-
-
 }

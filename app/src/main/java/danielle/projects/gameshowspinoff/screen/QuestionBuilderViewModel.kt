@@ -6,8 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import danielle.projects.gameshowspinoff.model.Question
 import danielle.projects.gameshowspinoff.model.QuestionSet
 import danielle.projects.gameshowspinoff.repository.QuestionRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,31 +15,30 @@ import javax.inject.Inject
 @HiltViewModel
 class QuestionBuilderViewModel @Inject constructor(private val repository: QuestionRepository): ViewModel() {
 
-    private val _questionSetList = MutableStateFlow<List<QuestionSet>>(mutableListOf())
-    val questionSetList = _questionSetList.asStateFlow()
+    val questionSetList = MutableStateFlow<List<QuestionSet>>(mutableListOf())
 
-    private val _currentQuestionList = MutableStateFlow<List<Question>>(mutableListOf())
-    val currentQuestionList = _currentQuestionList.asStateFlow()
+    val currentQuestionList = MutableStateFlow<List<Question>>(mutableListOf())
 
     init {
-        viewModelScope.launch {
-            repository.getAllQuestionSets().distinctUntilChanged().collect{ value ->
-                _questionSetList.value = value
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getAllQuestionSets().distinctUntilChanged().collect{
+                    listOfQuestionSets ->
+                questionSetList.value = listOfQuestionSets
             }
         }
     }
 
-    fun getQuestionsListByQuestionSet(questionSet: QuestionSet) {
+    fun getQuestionsListByQuestionSet(questionSetId: Int) {
         viewModelScope.launch {
-            repository.getAllQuestionsInSet(questionSet.id).distinctUntilChanged().collect{ value ->
-                _currentQuestionList.value = value
+            repository.getAllQuestionsInSet(questionSetId).distinctUntilChanged().collect{ value ->
+                currentQuestionList.value = value
             }
         }
     }
 
     fun getQuestionCountInQuestionSet(questionSet: QuestionSet): Int {
-        getQuestionsListByQuestionSet(questionSet = questionSet)
-        return _currentQuestionList.value.size
+        getQuestionsListByQuestionSet(questionSetId = questionSet.id)
+        return currentQuestionList.value.size
     }
     fun addQuestion(question: Question) {
         viewModelScope.launch {

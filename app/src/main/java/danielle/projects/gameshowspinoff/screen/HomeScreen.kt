@@ -28,18 +28,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import danielle.projects.gameshowspinoff.R
 import danielle.projects.gameshowspinoff.components.ColorBarComponent
 import danielle.projects.gameshowspinoff.model.ColorBarStateItem
+import danielle.projects.gameshowspinoff.navigation.GameShowScreens
 import danielle.projects.gameshowspinoff.util.ColorBarState
 
-@Preview
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController) {
     val sampleMoneyLadder: MutableList<ColorBarStateItem> = mutableListOf()
     for (i in 0..20) {
         if (i < 10) {
@@ -85,7 +85,8 @@ fun HomeScreen() {
             ),
                 modifier = Modifier.height(100.dp),
                 shape = RoundedCornerShape(corner = CornerSize(5.dp)),
-                onClick = { /* Navigate to question set picker (play mode) screen */ }) {
+                onClick = { /* Navigate to question set picker (play mode) screen */
+                navController.navigate(route = GameShowScreens.PlayGameScreen.name)}) {
                 Icon(
                     imageVector = Icons.Rounded.PlayArrow,
                     contentDescription = "Play Game",
@@ -105,7 +106,8 @@ fun HomeScreen() {
             ),
                 modifier = Modifier.height(100.dp),
                 shape = RoundedCornerShape(corner = CornerSize(5.dp)),
-                onClick = { /* Navigate to question set builder (editor mode) screen */ }) {
+                onClick = { /* Navigate to question set builder (editor mode) screen */
+                navController.navigate(route = GameShowScreens.QuestionSetBuilderScreen.name )}) {
                 Icon(
                     imageVector = Icons.Rounded.Edit,
                     contentDescription = "Question Builder",
