@@ -31,7 +31,7 @@ import danielle.projects.gameshowspinoff.util.GameState
 import kotlin.math.absoluteValue
 
 @Composable
-fun MoneyLadderScreen(navController: NavController){
+fun MoneyLadderScreen(navController: NavController, questionSetId: Int?){
     val moneyLadderViewModel: MoneyLadderViewModel = hiltViewModel()
     val ladderContents = moneyLadderViewModel.colorBarStates
     val position by moneyLadderViewModel.totalStepsClimbed.collectAsState()
@@ -40,63 +40,68 @@ fun MoneyLadderScreen(navController: NavController){
     val money by moneyLadderViewModel.moneyTooltip.collectAsState()
     val lives by moneyLadderViewModel.lives.collectAsState()
     val question by moneyLadderViewModel.question.collectAsState()
-
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        MoneyLadderComponent(
-            ladderState = ladderContents,
-            moneyCheckpoints = moneyLadderViewModel.moneyCheckpoints,
-            currentPosition = position
-        )
-        if (gameState == GameState.DIAL_IN_ANSWER)
-        {
-            QuestionComponent(question.questionText, moneyLadderViewModel)
+    if (questionSetId != null) {
+        if (moneyLadderViewModel.questionCount == 0) {
+            moneyLadderViewModel.getNextQuestion(questionSetId = questionSetId, firstQuestion = true)
         }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            MoneyLadderComponent(
+                ladderState = ladderContents,
+                moneyCheckpoints = moneyLadderViewModel.moneyCheckpoints,
+                currentPosition = position
+            )
+            if (gameState == GameState.DIAL_IN_ANSWER)
+            {
+                QuestionComponent(question = question.questionText, moneyLadderViewModel = moneyLadderViewModel)
+            }
 
-        Row(modifier = Modifier.padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-            if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_RESULTS) {
-                Button(onClick = { moneyLadderViewModel.playerMoveResults() }) {
-                    Text(text ="Reveal Answer", style = TextStyle(fontFamily = FontFamily.Monospace))
-                }
-            }
-            else if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION) {
-                Button(onClick = { moneyLadderViewModel.setGameState(GameState.DIAL_IN_ANSWER) }) {
-                    Text(text ="Next Question", style = TextStyle(fontFamily = FontFamily.Monospace))
-                }
-            }
-            else if (gameState == GameState.WON_GAME || gameState == GameState.LOST_GAME) {
-                Column(horizontalAlignment =  Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
-                    Button(onClick = { navController.navigate(GameShowScreens.HomeScreen.name) }) {
-                        Text(text ="Return to Menu", style = TextStyle(fontFamily = FontFamily.Monospace))
+            Row(modifier = Modifier.padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_RESULTS) {
+                    Button(onClick = { moneyLadderViewModel.playerMoveResults() }) {
+                        Text(text ="Reveal Answer", style = TextStyle(fontFamily = FontFamily.Monospace))
                     }
                 }
-            }
-            // banked money and lives
-            Surface(modifier = Modifier.padding(12.dp)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally){
-                    Text(text = tooltip, style = TextStyle(fontFamily = FontFamily.Monospace))
+                else if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION) {
+                    Button(onClick = {
+                        moneyLadderViewModel.setGameState(GameState.DIAL_IN_ANSWER)
+                        moneyLadderViewModel.getNextQuestion(questionSetId = questionSetId)}) {
+                        Text(text ="Next Question", style = TextStyle(fontFamily = FontFamily.Monospace))
+                    }
+                }
+                else if (gameState == GameState.WON_GAME || gameState == GameState.LOST_GAME) {
+                    Column(horizontalAlignment =  Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
+                        Button(onClick = { navController.navigate(GameShowScreens.HomeScreen.name) }) {
+                            Text(text ="Return to Menu", style = TextStyle(fontFamily = FontFamily.Monospace))
+                        }
+                    }
+                }
+                // banked money and lives
+                Surface(modifier = Modifier.padding(12.dp)) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally){
+                        Text(text = tooltip, style = TextStyle(fontFamily = FontFamily.Monospace))
 
-                    Row {
-                        Text(text = buildAnnotatedString {
-                            withStyle(style = SpanStyle()) {
-                                append("Money: ")
-                            }
-                            withStyle(style = SpanStyle(fontSize = TextUnit(20f, TextUnitType.Sp), fontWeight = FontWeight.ExtraBold)) {
-                                append(money)
-                            }}, style = TextStyle(fontFamily = FontFamily.Monospace,
-                            fontSize = TextUnit(18f, TextUnitType.Sp)
-                        ))
-                        Spacer(modifier = Modifier.padding(horizontal = 20.dp))
-                    Text(text = buildAnnotatedString {
-                        withStyle(style = SpanStyle()) {
-                            append("Lives: ")
+                        Row {
+                            Text(text = buildAnnotatedString {
+                                withStyle(style = SpanStyle()) {
+                                    append("Money: ")
+                                }
+                                withStyle(style = SpanStyle(fontSize = TextUnit(20f, TextUnitType.Sp), fontWeight = FontWeight.ExtraBold)) {
+                                    append(money)
+                                }}, style = TextStyle(fontFamily = FontFamily.Monospace,
+                                fontSize = TextUnit(18f, TextUnitType.Sp)
+                            ))
+                            Spacer(modifier = Modifier.padding(horizontal = 20.dp))
+                            Text(text = buildAnnotatedString {
+                                withStyle(style = SpanStyle()) {
+                                    append("Lives: ")
+                                }
+                                withStyle(style = SpanStyle(fontSize = TextUnit(20f, TextUnitType.Sp), fontWeight = FontWeight.ExtraBold)) {
+                                    append("${lives.absoluteValue}")
+                                }
+                            }, style = TextStyle(fontFamily = FontFamily.Monospace,
+                                fontSize = TextUnit(18f, TextUnitType.Sp)
+                            ))
                         }
-                        withStyle(style = SpanStyle(fontSize = TextUnit(20f, TextUnitType.Sp), fontWeight = FontWeight.ExtraBold)) {
-                            append("${lives.absoluteValue}")
-                        }
-                    }, style = TextStyle(fontFamily = FontFamily.Monospace,
-                        fontSize = TextUnit(18f, TextUnitType.Sp)
-                    ))
                     }
                 }
             }

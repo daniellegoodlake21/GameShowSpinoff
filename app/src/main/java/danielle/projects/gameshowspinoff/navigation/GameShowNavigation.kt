@@ -11,6 +11,7 @@ import danielle.projects.gameshowspinoff.screen.HomeScreen
 import danielle.projects.gameshowspinoff.screen.MoneyLadderScreen
 import danielle.projects.gameshowspinoff.screen.QuestionBuilderScreen
 import danielle.projects.gameshowspinoff.screen.QuestionSetBuilderScreen
+import danielle.projects.gameshowspinoff.screen.QuestionSetPickerScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,6 +23,14 @@ fun GameShowNavigation(){
             // here, pass where this should lead to
             HomeScreen(navController = navController)
         }
+        composable(GameShowScreens.QuestionSetPickerScreen.name){
+            // here, pass where this should lead to
+            QuestionSetPickerScreen(navController = navController)
+        }
+        composable(GameShowScreens.PlayGameScreen.name+ "/{questionSetId}",
+            arguments = listOf(navArgument(name = "questionSetId") {type = NavType.IntType})){ backStackEntry ->
+            MoneyLadderScreen(navController = navController, questionSetId = backStackEntry.arguments?.getInt("questionSetId"))
+        }
         composable(GameShowScreens.QuestionSetBuilderScreen.name){
             QuestionSetBuilderScreen(navController = navController)
         }
@@ -29,9 +38,7 @@ fun GameShowNavigation(){
             arguments = listOf(navArgument(name = "questionSetId") {type = NavType.IntType})){ backStackEntry ->
             QuestionBuilderScreen(navController = navController, questionSetId = backStackEntry.arguments?.getInt("questionSetId"))
         }
-        composable(GameShowScreens.PlayGameScreen.name){
-            MoneyLadderScreen(navController = navController)
-        }
+
     }
 
 }

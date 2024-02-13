@@ -17,19 +17,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import danielle.projects.gameshowspinoff.model.QuestionSet
+import danielle.projects.gameshowspinoff.navigation.GameShowScreens
 import danielle.projects.gameshowspinoff.screen.QuestionBuilderViewModel
 
-private const val MIN_QUESTIONS = 8
+const val MIN_QUESTIONS = 3
 @Composable
-fun PlayableQuestionSetComponent(questionBuilderViewModel: QuestionBuilderViewModel, questionSet: QuestionSet) {
-    val questionCount = questionBuilderViewModel.getQuestionCountInQuestionSet(questionSet)
+fun PlayableQuestionSetComponent(questionCountList: MutableMap<Int, Int>, navController: NavController, questionBuilderViewModel: QuestionBuilderViewModel, questionSet: QuestionSet) {
+    questionBuilderViewModel.getQuestionCountInQuestionSet(questionSet)
+    val questionCount = questionCountList.getOrDefault(questionSet.id, 0)
     Card(colors = CardDefaults.cardColors(containerColor = Color.LightGray),
-        modifier = Modifier.fillMaxWidth().height(100.dp).clickable {
-        if (questionCount >= MIN_QUESTIONS)
-        {
-        /* Navigate to play game with this question set */
-        } }) {
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .padding(32.dp)
+            .clickable {
+                if (questionCount >= MIN_QUESTIONS) {
+                    /* Navigate to play game with this question set */
+                    navController.navigate(route = "${GameShowScreens.PlayGameScreen.name}/${questionSet.id}")
+                }
+            }) {
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)){

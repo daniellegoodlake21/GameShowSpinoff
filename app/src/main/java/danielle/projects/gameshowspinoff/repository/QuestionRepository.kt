@@ -16,6 +16,8 @@ class QuestionRepository @Inject constructor(private val questionDatabaseDao: Qu
     fun getAllQuestionsInSet(setId: Int): Flow<List<Question>> = questionDatabaseDao.getQuestionsBySetId(setId).flowOn(Dispatchers.IO)
         .conflate()
 
+    fun getQuestionCountInSet(setId: Int): Flow<Int> = questionDatabaseDao.getQuestionCountBySetId(setId)
+
     suspend fun addQuestion(question: Question) = questionDatabaseDao.insert(question)
 
     suspend fun updateQuestion(question: Question) = questionDatabaseDao.update(question)

@@ -26,7 +26,7 @@ fun MoneyLadderComponent(ladderState: MutableList<ColorBarStateItem>?, moneyChec
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
             .fillMaxWidth()
-            .height(560.dp)
+            .height(700.dp)
     ) {
         items(items = ladderState!!) { item ->
             ColorBarComponent(

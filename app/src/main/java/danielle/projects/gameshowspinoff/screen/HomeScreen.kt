@@ -86,7 +86,7 @@ fun HomeScreen(navController: NavController) {
                 modifier = Modifier.height(100.dp),
                 shape = RoundedCornerShape(corner = CornerSize(5.dp)),
                 onClick = { /* Navigate to question set picker (play mode) screen */
-                navController.navigate(route = GameShowScreens.PlayGameScreen.name)}) {
+                navController.navigate(route = GameShowScreens.QuestionSetPickerScreen.name)}) {
                 Icon(
                     imageVector = Icons.Rounded.PlayArrow,
                     contentDescription = "Play Game",

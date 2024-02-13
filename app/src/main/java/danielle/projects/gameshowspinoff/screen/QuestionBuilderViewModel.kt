@@ -19,6 +19,8 @@ class QuestionBuilderViewModel @Inject constructor(private val repository: Quest
 
     val currentQuestionList = MutableStateFlow<List<Question>>(mutableListOf())
 
+    val questionCountInQuestionSetMap = MutableStateFlow<MutableMap<Int, Int>>(mutableMapOf())
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             repository.getAllQuestionSets().distinctUntilChanged().collect{
@@ -36,9 +38,13 @@ class QuestionBuilderViewModel @Inject constructor(private val repository: Quest
         }
     }
 
-    fun getQuestionCountInQuestionSet(questionSet: QuestionSet): Int {
-        getQuestionsListByQuestionSet(questionSetId = questionSet.id)
-        return currentQuestionList.value.size
+    fun getQuestionCountInQuestionSet(questionSet: QuestionSet) {
+        viewModelScope.launch {
+            repository.getQuestionCountInSet(questionSet.id).distinctUntilChanged()
+                .collect { count ->
+                    questionCountInQuestionSetMap.value[questionSet.id] = count
+                }
+        }
     }
     fun addQuestion(question: Question) {
         viewModelScope.launch {

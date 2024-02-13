@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import danielle.projects.gameshowspinoff.model.ColorBarStateItem
 import danielle.projects.gameshowspinoff.model.Question
+import danielle.projects.gameshowspinoff.repository.QuestionRepository
 import danielle.projects.gameshowspinoff.util.ColorBarState
 import danielle.projects.gameshowspinoff.util.GameState
 import danielle.projects.gameshowspinoff.util.MoneyLadderTimer
@@ -14,17 +15,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.ceil
 
 @HiltViewModel
-class MoneyLadderViewModel @Inject constructor(): ViewModel() {
+class MoneyLadderViewModel @Inject constructor(private val repository: QuestionRepository): ViewModel() {
 
-    private val _question = MutableStateFlow(Question(1, "Test Question", 10, 1))
+    var questionCount: Int = 0
+
+    private val _question = MutableStateFlow(Question(1, "Test Question", 1, 1))
 
     val question = _question.asStateFlow()
 
     private val _numericAnswer = MutableStateFlow(-1) // all answers in this game are integers
-
-    private val _correctAnswer = MutableStateFlow(15)
 
     private val _gameState = MutableStateFlow(GameState.DIAL_IN_ANSWER)
     val gameState = _gameState.asStateFlow()
@@ -41,7 +43,7 @@ class MoneyLadderViewModel @Inject constructor(): ViewModel() {
     private var moneyLadderTimer: MoneyLadderTimer? = null
 
     // map of which bars being reached or surpassed give which money on receipt of an exact answer
-    val moneyCheckpoints: Map<Int, Double> = mapOf(10 to 1.0, 20 to 1.5, 30 to 2.0, 40 to 4.0, 50 to 8.0, 60 to 12.5, 70 to 20.0, 80 to 30.0, 90 to 45.0, 99 to 60.0)
+    val moneyCheckpoints: MutableMap<Int, Double> = mutableMapOf()
 
     val tooltip = MutableStateFlow("")
 
@@ -59,13 +61,51 @@ class MoneyLadderViewModel @Inject constructor(): ViewModel() {
     private fun getInitialLadderBars(): MutableList<ColorBarStateItem>
     {
         val stateItems = mutableListOf<ColorBarStateItem>()
-        for (i in 0 until 100) {
+        for (i in 0 until 500) {
             stateItems.add(ColorBarStateItem(i, ColorBarState.NOT_YET_REACHED))
         }
         return stateItems
     }
 
+    fun getNextQuestion(questionSetId: Int, firstQuestion: Boolean = false) {
+        if (!firstQuestion) {
+            questionCount++
+        }
+        viewModelScope.launch {
+            repository.getAllQuestionsInSet(questionSetId).collect{ questionsList ->
+                if (questionsList.size <= questionCount) {
+                    setGameState(GameState.WON_GAME)
+                    setTooltip("You completed all the questions and won ${moneyTooltip.value}! Congratulations!")
+                }
+                else
+                {
+                    _question.value = questionsList[questionCount]
+                }
+            }
+        }
+    }
     init {
+        var checkpoint = 20
+        var cash = 2.0
+        while (checkpoint < 500) {
+            moneyCheckpoints[checkpoint] = cash
+            checkpoint += 20
+            if (cash < 30) {
+                cash *= 2
+            }
+            else if (cash < 72) {
+                cash *= 1.5
+                cash = ceil(cash)
+            }
+            else if (cash < 111)
+            {
+                cash *= 1.2
+                cash = ceil(cash)
+            }
+            else {
+                cash += 1
+            }
+        }
         colorBarStates.addAll(getInitialLadderBars())
     }
 
@@ -101,7 +141,7 @@ class MoneyLadderViewModel @Inject constructor(): ViewModel() {
     fun playerMove(inputAnswer: String){
         setNumericAnswer(inputAnswer)
         if (_numericAnswer.value > 0) {
-            moneyLadderTimer = MoneyLadderTimer(moneyLadderViewModel = this, userNumberOfSteps = _numericAnswer.value, correctNumberOfSteps = _correctAnswer.value)
+            moneyLadderTimer = MoneyLadderTimer(moneyLadderViewModel = this, userNumberOfSteps = _numericAnswer.value, correctNumberOfSteps = _question.value.correctAnswer)
             moneyLadderTimer?.playerMoveTimer?.start() /* handles the initial climb before losing lives
             and loses the game if and when the player's step count reaches one over the exact answer */
         }

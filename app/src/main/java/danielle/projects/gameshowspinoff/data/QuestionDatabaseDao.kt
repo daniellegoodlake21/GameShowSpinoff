@@ -21,7 +21,10 @@ interface QuestionDatabaseDao {
     @Query("SELECT * FROM question_table WHERE question_set_id =:questionSetId")
     fun getQuestionsBySetId(questionSetId: Int): Flow<List<Question>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Query("SELECT COUNT(*) FROM question_table WHERE question_set_id = :questionSetId")
+    fun getQuestionCountBySetId(questionSetId: Int): Flow<Int>
+
+            @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(question: Question)
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
