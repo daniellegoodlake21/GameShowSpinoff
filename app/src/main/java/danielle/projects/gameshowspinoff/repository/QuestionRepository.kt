@@ -1,20 +1,32 @@
 package danielle.projects.gameshowspinoff.repository
 
+import danielle.projects.gameshowspinoff.data.PrizeDatabaseDao
 import danielle.projects.gameshowspinoff.data.QuestionDatabaseDao
 import danielle.projects.gameshowspinoff.data.QuestionSetDatabaseDao
+import danielle.projects.gameshowspinoff.data.SaveGameDataDatabaseDao
+import danielle.projects.gameshowspinoff.model.Prize
 import danielle.projects.gameshowspinoff.model.Question
 import danielle.projects.gameshowspinoff.model.QuestionSet
-import kotlinx.coroutines.Dispatchers
+import danielle.projects.gameshowspinoff.model.SaveGameData
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
-class QuestionRepository @Inject constructor(private val questionDatabaseDao: QuestionDatabaseDao, private val questionSetDatabaseDao: QuestionSetDatabaseDao) {
 
+class QuestionRepository @Inject constructor(private val saveGameDataDatabaseDao: SaveGameDataDatabaseDao, private val questionDatabaseDao: QuestionDatabaseDao, private val questionSetDatabaseDao: QuestionSetDatabaseDao, private val prizeDatabaseDao: PrizeDatabaseDao) {
 
-    fun getAllQuestionsInSet(setId: Int): Flow<List<Question>> = questionDatabaseDao.getQuestionsBySetId(setId).flowOn(Dispatchers.IO)
-        .conflate()
+    // basic game save data
+    suspend fun getSaveGameDataInSet(setId: Int): SaveGameData = saveGameDataDatabaseDao.getSaveGameDataByQuestionSetId(setId)
+
+    suspend fun updateSaveGameData(saveGameData: SaveGameData) = saveGameDataDatabaseDao.update(saveGameData)
+
+    suspend fun deleteSaveGameData(saveGameData: SaveGameData) = saveGameDataDatabaseDao.deleteSaveGameData(saveGameData)
+
+    suspend fun addSaveGameData(saveGameData: SaveGameData): Int = saveGameDataDatabaseDao.insert(saveGameData).toInt()
+
+    suspend fun resetSaveGameData(questionSetId: Int) = saveGameDataDatabaseDao.resetGameByQuestionSetId(questionSetId)
+
+    // questions and question sets
+    fun getAllQuestionsInSet(setId: Int): Flow<List<Question>> = questionDatabaseDao.getQuestionsBySetId(setId)
 
     fun getQuestionCountInSet(setId: Int): Flow<Int> = questionDatabaseDao.getQuestionCountBySetId(setId)
 
@@ -36,4 +48,19 @@ class QuestionRepository @Inject constructor(private val questionDatabaseDao: Qu
     suspend fun deleteAllQuestionSets() = questionSetDatabaseDao.deleteAll()
 
     suspend fun deleteQuestionSetById(questionSet: QuestionSet) = questionSetDatabaseDao.deleteQuestionSet(questionSet)
+
+    // prizes
+
+    fun getAllPrizes(): Flow<List<Prize>> = prizeDatabaseDao.getAllPrizes()
+
+    suspend fun getAllPrizesOnce(): List<Prize> = prizeDatabaseDao.getAllPrizesOnce()
+    suspend fun getPrizeById(id: Int) = prizeDatabaseDao.getPrizeById(id)
+
+    suspend fun addPrize(prize: Prize) = prizeDatabaseDao.insert(prize)
+
+    suspend fun deletePrize(prize: Prize) = prizeDatabaseDao.deletePrize(prize)
+
+    suspend fun updatePrize(prize: Prize) = prizeDatabaseDao.update(prize)
+
+    suspend fun resetAllPrizes() = prizeDatabaseDao.resetAllPrizes()
 }

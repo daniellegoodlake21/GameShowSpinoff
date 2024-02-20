@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import danielle.projects.gameshowspinoff.model.Question
 import danielle.projects.gameshowspinoff.model.QuestionSet
+import danielle.projects.gameshowspinoff.model.SaveGameData
 import danielle.projects.gameshowspinoff.repository.QuestionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,7 +72,15 @@ class QuestionBuilderViewModel @Inject constructor(private val repository: Quest
     }
     fun addQuestionSet(questionSet: QuestionSet) {
         viewModelScope.launch {
-            repository.addQuestionSet(questionSet = questionSet)
+            val saveId = repository.addSaveGameData(saveGameData = SaveGameData())
+            repository.addQuestionSet(questionSet = questionSet.copy(saveGameDataId = saveId))
+        }
+    }
+
+    fun resetGame(questionSetId: Int) {
+        viewModelScope.launch {
+            repository.resetAllPrizes()
+            repository.resetSaveGameData(questionSetId = questionSetId)
         }
     }
 }

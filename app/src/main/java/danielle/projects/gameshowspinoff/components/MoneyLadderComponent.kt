@@ -13,11 +13,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import danielle.projects.gameshowspinoff.model.ColorBarStateItem
+import danielle.projects.gameshowspinoff.model.Prize
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun MoneyLadderComponent(ladderState: MutableList<ColorBarStateItem>?, moneyCheckpoints: Map<Int, Double>, currentPosition: Int) {
+fun MoneyLadderComponent(ladderState: MutableList<ColorBarStateItem>?, prizeCheckpoints: MutableMap<Int, Prize>, moneyCheckpoints: Map<Int, Double>, currentPosition: Int) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     LazyColumn(
@@ -29,8 +30,11 @@ fun MoneyLadderComponent(ladderState: MutableList<ColorBarStateItem>?, moneyChec
             .height(700.dp)
     ) {
         items(items = ladderState!!) { item ->
+            val bonusPrize = prizeCheckpoints.getOrDefault(item.barPosition, null)
+            val bonusPrizeTitle = bonusPrize?.prizeTitle ?: ""
             ColorBarComponent(
                 barPosition = item.barPosition,
+                bonusPrize = bonusPrizeTitle,
                 moneyCheckpointValue = moneyCheckpoints.getOrDefault(item.barPosition, null),
                 initialColorBarState = item.colorBarState,
                 onChange = {

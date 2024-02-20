@@ -8,4 +8,6 @@ import androidx.room.PrimaryKey
 data class QuestionSet(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "question_set_label")
-    var label: String)
+    var label: String,
+    @ColumnInfo(name = "save_game_data_id")
+    val saveGameDataId: Int? = null)

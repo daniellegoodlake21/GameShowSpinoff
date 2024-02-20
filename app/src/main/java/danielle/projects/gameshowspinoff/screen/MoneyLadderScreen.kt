@@ -41,12 +41,13 @@ fun MoneyLadderScreen(navController: NavController, questionSetId: Int?){
     val lives by moneyLadderViewModel.lives.collectAsState()
     val question by moneyLadderViewModel.question.collectAsState()
     if (questionSetId != null) {
-        if (moneyLadderViewModel.questionCount == 0) {
-            moneyLadderViewModel.getNextQuestion(questionSetId = questionSetId, firstQuestion = true)
+        if (moneyLadderViewModel.questionCount == -1) {
+            moneyLadderViewModel.loadGame(setId = questionSetId)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             MoneyLadderComponent(
                 ladderState = ladderContents,
+                prizeCheckpoints = moneyLadderViewModel.bonusPrizeLadderMap,
                 moneyCheckpoints = moneyLadderViewModel.moneyCheckpoints,
                 currentPosition = position
             )
@@ -63,14 +64,18 @@ fun MoneyLadderScreen(navController: NavController, questionSetId: Int?){
                 }
                 else if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION) {
                     Button(onClick = {
+                        moneyLadderViewModel.onFinishQuestion()
                         moneyLadderViewModel.setGameState(GameState.DIAL_IN_ANSWER)
-                        moneyLadderViewModel.getNextQuestion(questionSetId = questionSetId)}) {
+                        moneyLadderViewModel.getNextQuestion()}) {
                         Text(text ="Next Question", style = TextStyle(fontFamily = FontFamily.Monospace))
                     }
                 }
                 else if (gameState == GameState.WON_GAME || gameState == GameState.LOST_GAME) {
                     Column(horizontalAlignment =  Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
-                        Button(onClick = { navController.navigate(GameShowScreens.HomeScreen.name) }) {
+                        Button(onClick = {
+                            moneyLadderViewModel.resetGame()
+                            navController.navigate(GameShowScreens.HomeScreen.name)
+                        }) {
                             Text(text ="Return to Menu", style = TextStyle(fontFamily = FontFamily.Monospace))
                         }
                     }
@@ -102,6 +107,21 @@ fun MoneyLadderScreen(navController: NavController, questionSetId: Int?){
                                 fontSize = TextUnit(18f, TextUnitType.Sp)
                             ))
                         }
+                        Spacer(modifier = Modifier.padding(vertical = 20.dp))
+                        Text(text = buildAnnotatedString {
+                            withStyle(style = SpanStyle()) {
+                                append("Bonus Prizes: ")
+                                if (moneyLadderViewModel.bonusPrizesCollected.value.size > 0) {
+                                    withStyle(style = SpanStyle(fontSize = TextUnit(20f, TextUnitType.Sp), fontWeight = FontWeight.ExtraBold)) {
+                                        for (prize in moneyLadderViewModel.bonusPrizesCollected.value) {
+                                            append("\n$prize")
+                                        }
+                                    }
+                                }
+                                else {
+                                    append("No Bonus Prizes Yet. Keep Going!")
+                                }
+                            }})
                     }
                 }
             }

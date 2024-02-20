@@ -28,6 +28,7 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
                 cancel()
             } else {
                 moneyLadderViewModel.setColorBarState(barsClimbed, ColorBarState.PLAYER_INPUT_GRAY)
+                moneyLadderViewModel.collectBonusPrizeIfPresent(barsClimbed)
                 moneyLadderViewModel.setTooltip("Count ${barsClimbed + 1}")
                 if (moneyLadderViewModel.moneyCheckpoints.containsKey(barsClimbed)) {
                     moneyCheckpointPassed = barsClimbed
@@ -53,6 +54,7 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
 
                 if (livesLostSoFarCount < livesLost) {
                     moneyLadderViewModel.setColorBarState(barsClimbed, ColorBarState.LOST_LIFE_RED)
+                    moneyLadderViewModel.collectBonusPrizeIfPresent(barsClimbed)
                     moneyLadderViewModel.setLives(moneyLadderViewModel.lives.value - 1)
                     livesLostSoFarCount++
                     moneyLadderViewModel.setTooltip("Lost $livesLostSoFarCount Lives...")
@@ -70,6 +72,16 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
                 // exact answer
                 moneyCheckpointPassed?.let {
                     moneyLadderViewModel.bankMoney(moneyCheckpoint = moneyCheckpointPassed!!)
+                } ?: run {
+                    var previousCheckpointNowEarned: Int? = null
+                    for (i in 0 until barsClimbed) {
+                        if (moneyLadderViewModel.moneyCheckpoints.containsKey(i)) {
+                            previousCheckpointNowEarned = i
+                        }
+                    }
+                    if (previousCheckpointNowEarned != null) {
+                        moneyLadderViewModel.bankMoney(moneyCheckpoint = previousCheckpointNowEarned)
+                    }
                 }
                 moneyLadderViewModel.addLives(5)
                 moneyLadderViewModel.setTooltip("EXACT ANSWER!!")

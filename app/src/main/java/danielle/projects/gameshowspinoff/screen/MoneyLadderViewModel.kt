@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import danielle.projects.gameshowspinoff.model.ColorBarStateItem
+import danielle.projects.gameshowspinoff.model.Prize
 import danielle.projects.gameshowspinoff.model.Question
+import danielle.projects.gameshowspinoff.model.SaveGameData
 import danielle.projects.gameshowspinoff.repository.QuestionRepository
 import danielle.projects.gameshowspinoff.util.ColorBarState
 import danielle.projects.gameshowspinoff.util.GameState
 import danielle.projects.gameshowspinoff.util.MoneyLadderTimer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +23,11 @@ import kotlin.math.ceil
 @HiltViewModel
 class MoneyLadderViewModel @Inject constructor(private val repository: QuestionRepository): ViewModel() {
 
-    var questionCount: Int = 0
+    private var saveGameData = SaveGameData(-1, 0, 0, -1.0, 25)
+
+    var questionCount: Int = -1
+
+    private var questionSetId: Int = -1
 
     private val _question = MutableStateFlow(Question(1, "Test Question", 1, 1))
 
@@ -45,6 +52,36 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
     // map of which bars being reached or surpassed give which money on receipt of an exact answer
     val moneyCheckpoints: MutableMap<Int, Double> = mutableMapOf()
 
+    private val _bonusPrizesCollected = MutableStateFlow<MutableList<String>>(mutableListOf())
+    val bonusPrizesCollected = _bonusPrizesCollected.asStateFlow()
+
+    private val bonusPrizes = MutableStateFlow<MutableList<Prize>>(mutableListOf())
+
+    val bonusPrizeLadderMap = mutableMapOf<Int, Prize>()
+    private suspend fun placeBonusPrizesOnLadder() {
+        bonusPrizeLadderMap.clear()
+        bonusPrizes.value.clear()
+        _bonusPrizesCollected.value.clear()
+        bonusPrizes.value = repository.getAllPrizesOnce().toMutableList()
+        for (i in 0 until bonusPrizes.value.size) {
+            val prize = bonusPrizes.value[i]
+            if (prize.isCollected) {
+                _bonusPrizesCollected.value.add(prize.prizeTitle)
+            }
+            if (prize.barPosition != null) {
+                bonusPrizeLadderMap[prize.barPosition!!] = prize
+            }
+            else {
+                val range = IntRange(i + (i * 20), ((i+1) * 20) - 1) /* spread them out
+                between the money checkpoints
+                (20 bars between each checkpoint) */
+                val position = range.random()
+                bonusPrizeLadderMap[position] = prize
+                repository.updatePrize(prize = prize.copy(barPosition = position))
+            }
+        }
+    }
+
     val tooltip = MutableStateFlow("")
 
     var colorBarStates = mutableStateListOf<ColorBarStateItem>()
@@ -67,10 +104,8 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
         return stateItems
     }
 
-    fun getNextQuestion(questionSetId: Int, firstQuestion: Boolean = false) {
-        if (!firstQuestion) {
-            questionCount++
-        }
+    fun getNextQuestion() {
+        questionCount++
         viewModelScope.launch {
             repository.getAllQuestionsInSet(questionSetId).collect{ questionsList ->
                 if (questionsList.size <= questionCount) {
@@ -83,6 +118,34 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
                 }
             }
         }
+    }
+
+    fun loadGame(setId: Int) {
+        colorBarStates.addAll(getInitialLadderBars())
+        questionSetId = setId
+        questionCount = 0
+        viewModelScope.launch(Dispatchers.Main) {
+            loadSaveGameData()
+            placeBonusPrizesOnLadder()
+            getQuestion()
+        }
+    }
+
+    private suspend fun getQuestion() {
+        repository.getAllQuestionsInSet(questionSetId).collect { questionsList ->
+            _question.value = questionsList[questionCount]
+        }
+    }
+    private suspend fun loadSaveGameData() {
+        saveGameData = repository.getSaveGameDataInSet(questionSetId)
+        _totalStepsClimbed.value = saveGameData.stepsClimbed
+        for (i in 0 until _totalStepsClimbed.value) {
+            setColorBarState(i, ColorBarState.PLAYER_INPUT_GRAY,  increment = false)
+        }
+        questionCount = saveGameData.questionIndex
+        _lives.value = saveGameData.lives
+        _money.value = saveGameData.money
+        moneyTooltip.value = "£%.2f".format(_money.value)
     }
     init {
         var checkpoint = 20
@@ -106,7 +169,7 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
                 cash += 1
             }
         }
-        colorBarStates.addAll(getInitialLadderBars())
+
     }
 
     // set lives at the beginning
@@ -114,9 +177,22 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
         _lives.value = startLives
     }
 
+    fun onFinishQuestion() {
+        viewModelScope.launch {
+            repository.updateSaveGameData(saveGameData = saveGameData.copy(stepsClimbed = _totalStepsClimbed.value, lives = _lives.value, money = _money.value, questionIndex = questionCount + 1))
+        }
+    }
+
+    fun resetGame() {
+        viewModelScope.launch {
+            repository.resetSaveGameData(questionSetId)
+        }
+        _bonusPrizesCollected.value.clear()
+    }
     fun addLives(newLives: Int) {
         _lives.value += newLives
     }
+
 
     // bank the money when an exact answer is given
     fun bankMoney(moneyCheckpoint: Int) {
@@ -158,6 +234,15 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
         }
     }
 
+    fun collectBonusPrizeIfPresent(colorBarPosition: Int) {
+        if (bonusPrizeLadderMap.containsKey(colorBarPosition)) {
+            val prize = bonusPrizeLadderMap[colorBarPosition]!!
+            _bonusPrizesCollected.value.add(prize.prizeTitle)
+            viewModelScope.launch {
+                repository.updatePrize(prize = prize.copy(isCollected = true))
+            }
+        }
+    }
     fun setGameState(newGameState: GameState) {
         _gameState.value = newGameState
         if (newGameState == GameState.DIAL_IN_ANSWER) {
@@ -181,8 +266,5 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
             }
             setGameState(GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION)
         }
-
-
     }
-
 }

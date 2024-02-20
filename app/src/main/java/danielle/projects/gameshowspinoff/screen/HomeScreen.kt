@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -72,7 +73,8 @@ fun HomeScreen(navController: NavController) {
                 items(sampleMoneyLadder) { item ->
                     ColorBarComponent(barPosition = item.barPosition,
                         moneyCheckpointValue = if (item.barPosition == 4) 1.0 else if (item.barPosition == 9) 1.5 else null,
-                        item.colorBarState)
+                        bonusPrize = "",
+                        initialColorBarState = item.colorBarState)
                 }
             }
             Spacer(modifier = Modifier.padding(32.dp))
@@ -96,7 +98,7 @@ fun HomeScreen(navController: NavController) {
                 )
                 Text("Play", fontFamily = FontFamily.Monospace, fontSize = TextUnit(28f, TextUnitType.Sp))
             }
-            Spacer(modifier = Modifier.padding(16.dp))
+            Spacer(modifier = Modifier.padding(32.dp))
             Button(border = BorderStroke(2.dp, Color.Black), colors = ButtonDefaults.buttonColors(
                 containerColor = Color(
                     LocalContext.current.getColor(
@@ -118,5 +120,26 @@ fun HomeScreen(navController: NavController) {
                 Text("Edit Questions", fontFamily = FontFamily.Monospace, fontSize = TextUnit(22f, TextUnitType.Sp))
 
             }
+        Spacer(modifier = Modifier.padding(16.dp))
+        Button(border = BorderStroke(2.dp, Color.Black), colors = ButtonDefaults.buttonColors(
+            containerColor = Color(
+                LocalContext.current.getColor(
+                    R.color.gold
+                )
+            )
+        ),
+            modifier = Modifier.height(100.dp),
+            shape = RoundedCornerShape(corner = CornerSize(5.dp)),
+            onClick = { /* Navigate to prize builder (editor mode) screen */
+                navController.navigate(route = GameShowScreens.PrizeBuilderScreen.name )}) {
+            Icon(
+                imageVector = Icons.Rounded.Settings,
+                contentDescription = "Prize Builder",
+                Modifier
+                    .padding(start = 0.dp, top = 12.dp, bottom = 12.dp, end = 6.dp)
+                    .size(100.dp)
+            )
+            Text("Settings", fontFamily = FontFamily.Monospace, fontSize = TextUnit(22f, TextUnitType.Sp))
         }
+    }
 }

@@ -28,6 +28,7 @@ import danielle.projects.gameshowspinoff.util.ColorBarState
 fun ColorBarComponent(
     barPosition: Int = 1,
     moneyCheckpointValue: Double? = 10.0,
+    bonusPrize: String = "",
     initialColorBarState: ColorBarState = ColorBarState.NOT_YET_REACHED,
     onChange: () -> Unit = {}
 ) {
@@ -39,6 +40,7 @@ fun ColorBarComponent(
         ColorBarState.CORRECT_GOLD -> Color(ContextCompat.getColor(LocalContext.current, R.color.gold))
     }
     val isCheckpoint = moneyCheckpointValue != null
+    val isBonusPrize = bonusPrize.isNotEmpty()
     val border =  if (isCheckpoint) BorderStroke(width = 4.dp, color = Color(ContextCompat.getColor(LocalContext.current, R.color.gold)))
     else BorderStroke(width = 1.dp, color = Color.Black)
     Surface(modifier = Modifier
@@ -47,12 +49,28 @@ fun ColorBarComponent(
         .border(border),
         color = color) {
         if (isCheckpoint) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center) {
-                Text(text = "£%.2f".format(moneyCheckpointValue!!),
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "£%.2f".format(moneyCheckpointValue!!),
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = TextUnit(24f, TextUnitType.Sp),
-                    color = Color.White)
+                    color = Color.White
+                )
+            }
+        } else if (isBonusPrize) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Win $bonusPrize",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = TextUnit(24f, TextUnitType.Sp),
+                    color = Color.White
+                )
             }
         }
     }

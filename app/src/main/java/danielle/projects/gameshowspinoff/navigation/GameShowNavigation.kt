@@ -1,6 +1,5 @@
 package danielle.projects.gameshowspinoff.navigation
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -9,11 +8,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import danielle.projects.gameshowspinoff.screen.HomeScreen
 import danielle.projects.gameshowspinoff.screen.MoneyLadderScreen
+import danielle.projects.gameshowspinoff.screen.PrizeBuilderScreen
 import danielle.projects.gameshowspinoff.screen.QuestionBuilderScreen
 import danielle.projects.gameshowspinoff.screen.QuestionSetBuilderScreen
 import danielle.projects.gameshowspinoff.screen.QuestionSetPickerScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameShowNavigation(){
     val navController = rememberNavController()
@@ -23,8 +22,10 @@ fun GameShowNavigation(){
             // here, pass where this should lead to
             HomeScreen(navController = navController)
         }
+        composable(GameShowScreens.PrizeBuilderScreen.name){
+            PrizeBuilderScreen(navController = navController)
+        }
         composable(GameShowScreens.QuestionSetPickerScreen.name){
-            // here, pass where this should lead to
             QuestionSetPickerScreen(navController = navController)
         }
         composable(GameShowScreens.PlayGameScreen.name+ "/{questionSetId}",
