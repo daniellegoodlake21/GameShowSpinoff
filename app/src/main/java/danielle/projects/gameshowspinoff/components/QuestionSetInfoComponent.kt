@@ -47,9 +47,8 @@ fun QuestionSetInfoComponent(navController: NavController, questionBuilderViewMo
     val context = LocalContext.current
     Card(colors = CardDefaults.cardColors(containerColor = Color.LightGray), modifier = Modifier
         .fillMaxWidth()
-        .height(275.dp)
         .padding(vertical = 48.dp, horizontal = 16.dp)
-        .height(100.dp)
+        .height(230.dp)
         .clickable { /* navigate to question set with list of questions */
         navController.navigate(route = "${GameShowScreens.QuestionBuilderScreen.name}/${questionSet.id}")}) {
         Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally,
@@ -61,7 +60,7 @@ fun QuestionSetInfoComponent(navController: NavController, questionBuilderViewMo
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp), textStyle = androidx.compose.ui.text.TextStyle(
+                    .padding(12.dp), textStyle = TextStyle(
                     fontSize = TextUnit(24f, TextUnitType.Sp),
                     fontFamily = FontFamily.Monospace
                 ),

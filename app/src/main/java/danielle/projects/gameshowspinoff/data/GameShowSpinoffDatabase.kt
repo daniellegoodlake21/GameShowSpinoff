@@ -8,7 +8,7 @@ import danielle.projects.gameshowspinoff.model.QuestionSet
 import danielle.projects.gameshowspinoff.model.SaveGameData
 
 
-@Database(entities = [Question::class, QuestionSet::class, Prize::class, SaveGameData::class], version = 4, exportSchema = false)
+@Database(entities = [Question::class, QuestionSet::class, Prize::class, SaveGameData::class], version = 5, exportSchema = false)
 abstract class GameShowSpinoffDatabase: RoomDatabase() {
 
     abstract fun questionDao(): QuestionDatabaseDao

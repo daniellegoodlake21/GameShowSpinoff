@@ -22,7 +22,7 @@ interface SaveGameDataDatabaseDao {
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(saveGameData: SaveGameData)
 
-    @Query("UPDATE save_game_data_table SET steps_climbed = 0, question_index = 0, lives = 25, money = 0.0 WHERE id in (SELECT question_set_table.save_game_data_id q FROM question_set_table WHERE question_set_table.id =:questionSetId)")
+    @Query("UPDATE save_game_data_table SET range_used = 1, more_than_used = 1, odd_or_even_used = 1, steps_climbed = 0, question_index = 0, lives = 25, money = 0.0 WHERE id in (SELECT question_set_table.save_game_data_id q FROM question_set_table WHERE question_set_table.id =:questionSetId)")
     suspend fun resetGameByQuestionSetId(questionSetId: Int)
 
     @Query("DELETE FROM save_game_data_table")

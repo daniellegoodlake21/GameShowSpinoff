@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import danielle.projects.gameshowspinoff.components.LifelineGroupComponent
 import danielle.projects.gameshowspinoff.components.MoneyLadderComponent
 import danielle.projects.gameshowspinoff.components.QuestionComponent
 import danielle.projects.gameshowspinoff.navigation.GameShowScreens
@@ -40,6 +41,7 @@ fun MoneyLadderScreen(navController: NavController, questionSetId: Int?){
     val money by moneyLadderViewModel.moneyTooltip.collectAsState()
     val lives by moneyLadderViewModel.lives.collectAsState()
     val question by moneyLadderViewModel.question.collectAsState()
+
     if (questionSetId != null) {
         if (moneyLadderViewModel.questionCount == -1) {
             moneyLadderViewModel.loadGame(setId = questionSetId)
@@ -123,6 +125,9 @@ fun MoneyLadderScreen(navController: NavController, questionSetId: Int?){
                                 }
                             }})
                     }
+                }
+                if (gameState == GameState.DIAL_IN_ANSWER) {
+                    LifelineGroupComponent(moneyLadderViewModel = moneyLadderViewModel)
                 }
             }
         }

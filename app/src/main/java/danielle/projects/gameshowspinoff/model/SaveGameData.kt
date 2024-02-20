@@ -13,4 +13,10 @@ data class SaveGameData(
     @ColumnInfo(name = "question_index")
     var questionIndex: Int = 0,
     var money: Double = 0.0,
-    var lives: Int = 25)
+    var lives: Int = 25,
+    @ColumnInfo(name = "range_used")
+    val rangeUsed: Boolean = true,
+    @ColumnInfo(name = "odd_or_even_used")
+    val oddOrEvenUsed: Boolean = true,
+    @ColumnInfo(name = "more_than_used")
+    val moreThanUsed: Boolean = true)

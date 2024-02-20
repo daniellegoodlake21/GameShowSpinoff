@@ -80,6 +80,7 @@ class QuestionBuilderViewModel @Inject constructor(private val repository: Quest
     fun resetGame(questionSetId: Int) {
         viewModelScope.launch {
             repository.resetAllPrizes()
+
             repository.resetSaveGameData(questionSetId = questionSetId)
         }
     }

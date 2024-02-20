@@ -1,6 +1,7 @@
 package danielle.projects.gameshowspinoff.screen
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,6 +24,12 @@ import kotlin.math.ceil
 @HiltViewModel
 class MoneyLadderViewModel @Inject constructor(private val repository: QuestionRepository): ViewModel() {
 
+    val oddOrEvenState = MutableStateFlow(true)
+    val rangeState = MutableStateFlow(true)
+    val moreThanState = MutableStateFlow(true)
+    private var moreThanValueNumeric: Int = -1
+
+    val lifelineResultValue = MutableStateFlow("")
     private var saveGameData = SaveGameData(-1, 0, 0, -1.0, 25)
 
     var questionCount: Int = -1
@@ -118,12 +125,14 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
                 }
             }
         }
+        lifelineResultValue.value = ""
     }
 
     fun loadGame(setId: Int) {
         colorBarStates.addAll(getInitialLadderBars())
         questionSetId = setId
         questionCount = 0
+        lifelineResultValue.value = ""
         viewModelScope.launch(Dispatchers.Main) {
             loadSaveGameData()
             placeBonusPrizesOnLadder()
@@ -146,6 +155,10 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
         _lives.value = saveGameData.lives
         _money.value = saveGameData.money
         moneyTooltip.value = "£%.2f".format(_money.value)
+        rangeState.value = saveGameData.rangeUsed
+        oddOrEvenState.value = saveGameData.oddOrEvenUsed
+        moreThanState.value = saveGameData.moreThanUsed
+
     }
     init {
         var checkpoint = 20
@@ -179,7 +192,8 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
 
     fun onFinishQuestion() {
         viewModelScope.launch {
-            repository.updateSaveGameData(saveGameData = saveGameData.copy(stepsClimbed = _totalStepsClimbed.value, lives = _lives.value, money = _money.value, questionIndex = questionCount + 1))
+            repository.updateSaveGameData(saveGameData = saveGameData.copy(stepsClimbed = _totalStepsClimbed.value, lives = _lives.value, money = _money.value, questionIndex = questionCount + 1,
+                moreThanUsed = moreThanState.value, oddOrEvenUsed = oddOrEvenState.value, rangeUsed = rangeState.value))
         }
     }
 
@@ -266,5 +280,56 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
             }
             setGameState(GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION)
         }
+    }
+
+    fun useRangeLifeline() {
+        val correctAnswer = _question.value.correctAnswer
+        val digitsBelow = (0..correctAnswer).random()
+        val max = correctAnswer + digitsBelow
+        val range = IntRange(digitsBelow, max)
+        lifelineResultValue.value = "RANGE: ${range.first} to ${range.last}"
+        rangeState.value = false
+    }
+
+    fun useMoreThan() {
+        val correctAnswer = _question.value.correctAnswer
+        if (moreThanValueNumeric <= 0) {
+            lifelineResultValue.value = "Please enter a digit of 1 or more"
+        }
+        else
+        {
+            if (correctAnswer > moreThanValueNumeric) {
+                lifelineResultValue.value = "The answer is MORE than $moreThanValueNumeric"
+            }
+            else {
+                lifelineResultValue.value = "The answer is LESS THAN OR EQUAL TO $moreThanValueNumeric"
+            }
+            moreThanState.value = false
+        }
+
+    }
+
+    fun setMoreThanLifelineValue(value: String) {
+        try {
+            if (value.isDigitsOnly())
+            {
+                moreThanValueNumeric = value.trimStart{it == '0'}.toInt()
+            }
+        }
+        catch(e: Exception) {
+            // do not store the new value as an integer, just do nothing
+        }
+    }
+
+    fun useOddOrEvenLifeline() {
+        val correctAnswer = _question.value.correctAnswer
+        if (correctAnswer.mod(2) == 0) {
+            lifelineResultValue.value = "The answer is an EVEN number"
+        }
+        else
+        {
+            lifelineResultValue.value = "The answer is an ODD number"
+        }
+        oddOrEvenState.value = false
     }
 }
