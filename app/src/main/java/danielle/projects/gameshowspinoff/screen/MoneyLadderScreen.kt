@@ -1,5 +1,6 @@
 package danielle.projects.gameshowspinoff.screen
 
+import android.media.MediaPlayer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import danielle.projects.gameshowspinoff.R
 import danielle.projects.gameshowspinoff.components.LifelineGroupComponent
 import danielle.projects.gameshowspinoff.components.MoneyLadderComponent
 import danielle.projects.gameshowspinoff.components.QuestionComponent
@@ -42,6 +45,9 @@ fun MoneyLadderScreen(navController: NavController, questionSetId: Int?){
     val lives by moneyLadderViewModel.lives.collectAsState()
     val question by moneyLadderViewModel.question.collectAsState()
 
+    var mediaPlayer: MediaPlayer?
+    val context = LocalContext.current
+
     if (questionSetId != null) {
         if (moneyLadderViewModel.questionCount == -1) {
             moneyLadderViewModel.loadGame(setId = questionSetId)
@@ -51,7 +57,8 @@ fun MoneyLadderScreen(navController: NavController, questionSetId: Int?){
                 ladderState = ladderContents,
                 prizeCheckpoints = moneyLadderViewModel.bonusPrizeLadderMap,
                 moneyCheckpoints = moneyLadderViewModel.moneyCheckpoints,
-                currentPosition = position
+                currentPosition = position,
+                gameState = gameState
             )
             if (gameState == GameState.DIAL_IN_ANSWER)
             {
@@ -59,27 +66,46 @@ fun MoneyLadderScreen(navController: NavController, questionSetId: Int?){
             }
 
             Row(modifier = Modifier.padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_RESULTS) {
-                    Button(onClick = { moneyLadderViewModel.playerMoveResults() }) {
-                        Text(text ="Reveal Answer", style = TextStyle(fontFamily = FontFamily.Monospace))
-                    }
-                }
-                else if (gameState == GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION) {
-                    Button(onClick = {
-                        moneyLadderViewModel.onFinishQuestion()
-                        moneyLadderViewModel.setGameState(GameState.DIAL_IN_ANSWER)
-                        moneyLadderViewModel.getNextQuestion()}) {
-                        Text(text ="Next Question", style = TextStyle(fontFamily = FontFamily.Monospace))
-                    }
-                }
-                else if (gameState == GameState.WON_GAME || gameState == GameState.LOST_GAME) {
-                    Column(horizontalAlignment =  Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
-                        Button(onClick = {
-                            moneyLadderViewModel.resetGame()
-                            navController.navigate(GameShowScreens.HomeScreen.name)
-                        }) {
-                            Text(text ="Return to Menu", style = TextStyle(fontFamily = FontFamily.Monospace))
+                when (gameState) {
+                    GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_RESULTS -> {
+                        Button(onClick = { moneyLadderViewModel.playerMoveResults() }) {
+                            Text(text ="Reveal Answer", style = TextStyle(fontFamily = FontFamily.Monospace))
                         }
+                    }
+                    GameState.WAIT_FOR_FLASH_GOLD_CORRECT -> {
+                        mediaPlayer = MediaPlayer.create(context, R.raw.exactanswer)
+                        mediaPlayer?.isLooping = false
+                        mediaPlayer?.start()
+                    }
+                    GameState.WAIT_FOR_PLAYER_TO_ASK_FOR_NEXT_QUESTION -> {
+                        Button(onClick = {
+                            moneyLadderViewModel.onFinishQuestion()
+                            moneyLadderViewModel.setGameState(GameState.DIAL_IN_ANSWER)
+                            moneyLadderViewModel.getNextQuestion()}) {
+                            Text(text ="Next Question", style = TextStyle(fontFamily = FontFamily.Monospace))
+                        }
+                    }
+                    GameState.WON_GAME, GameState.LOST_GAME -> {
+                        mediaPlayer = if (gameState == GameState.WON_GAME) {
+                            MediaPlayer.create(LocalContext.current, R.raw.exactanswer)
+                        } else {
+                            MediaPlayer.create(LocalContext.current, R.raw.gameover)
+                        }
+                        if (mediaPlayer != null && !mediaPlayer!!.isPlaying) {
+                            mediaPlayer!!.isLooping = false
+                            mediaPlayer!!.start()
+                        }
+                        Column(horizontalAlignment =  Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
+                            Button(onClick = {
+                                moneyLadderViewModel.resetGame()
+                                navController.navigate(GameShowScreens.HomeScreen.name)
+                            }) {
+                                Text(text ="Return to Menu", style = TextStyle(fontFamily = FontFamily.Monospace))
+                            }
+                        }
+                    }
+                    else -> {
+
                     }
                 }
                 // banked money and lives

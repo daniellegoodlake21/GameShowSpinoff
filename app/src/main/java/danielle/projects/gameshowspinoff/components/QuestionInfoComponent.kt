@@ -64,7 +64,7 @@ fun QuestionInfoComponent(questionBuilderViewModel: QuestionBuilderViewModel, qu
                         .fillMaxWidth()
                         .padding(12.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
+                        keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(onSend = { keyboardController?.hide() },

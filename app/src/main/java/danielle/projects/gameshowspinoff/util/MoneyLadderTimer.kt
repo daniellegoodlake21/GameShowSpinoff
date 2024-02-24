@@ -12,6 +12,7 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
     private var moneyCheckpointPassed: Int? = null
     var livesLostSoFarCount = 0
 
+
     // the first time moving up the ladder is to check the player hasn't gone over only
     val playerMoveTimer = object: CountDownTimer((userNumberOfSteps * millisecondsDelayPerBar).toLong(), millisecondsDelayPerBar.toLong()) {
 
@@ -25,6 +26,7 @@ class MoneyLadderTimer(moneyLadderViewModel: MoneyLadderViewModel, userNumberOfS
             if (initialPosition + correctNumberOfSteps - 1 < barsClimbed) {
                 moneyLadderViewModel.setColorBarState(barsClimbed, ColorBarState.LOST_LIFE_RED)
                 moneyLadderViewModel.loseGame()
+
                 cancel()
             } else {
                 moneyLadderViewModel.setColorBarState(barsClimbed, ColorBarState.PLAYER_INPUT_GRAY)

@@ -53,7 +53,7 @@ fun PrizeInfoComponent(prizeBuilderViewModel: PrizeBuilderViewModel, prize: Priz
                         .fillMaxWidth()
                         .padding(12.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Number,
+                        keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(onSend = { keyboardController?.hide() },

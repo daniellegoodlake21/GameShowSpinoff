@@ -105,7 +105,7 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
     private fun getInitialLadderBars(): MutableList<ColorBarStateItem>
     {
         val stateItems = mutableListOf<ColorBarStateItem>()
-        for (i in 0 until 500) {
+        for (i in 0 until 261) {
             stateItems.add(ColorBarStateItem(i, ColorBarState.NOT_YET_REACHED))
         }
         return stateItems
@@ -122,6 +122,10 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
                 else
                 {
                     _question.value = questionsList[questionCount]
+                    if (_question.value.correctAnswer + _totalStepsClimbed.value > 261) {
+                        setGameState(GameState.WON_GAME)
+                        setTooltip("You reached the maximum amount of money for this game! Enjoy your ${moneyTooltip.value}!")
+                    }
                 }
             }
         }
@@ -160,10 +164,11 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
         moreThanState.value = saveGameData.moreThanUsed
 
     }
+
     init {
         var checkpoint = 20
-        var cash = 2.0
-        while (checkpoint < 500) {
+        var cash = 4.0
+        while (checkpoint < 261) {
             moneyCheckpoints[checkpoint] = cash
             checkpoint += 20
             if (cash < 30) {
@@ -198,8 +203,10 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
     }
 
     fun resetGame() {
+        setGameState(GameState.DIAL_IN_ANSWER)
         viewModelScope.launch {
             repository.resetSaveGameData(questionSetId)
+            repository.resetAllPrizes()
         }
         _bonusPrizesCollected.value.clear()
     }
