@@ -1,10 +1,12 @@
 package danielle.projects.gameshowspinoff.repository
 
 import danielle.projects.gameshowspinoff.data.PrizeDatabaseDao
+import danielle.projects.gameshowspinoff.data.PrizeGameDataDatabaseDao
 import danielle.projects.gameshowspinoff.data.QuestionDatabaseDao
 import danielle.projects.gameshowspinoff.data.QuestionSetDatabaseDao
 import danielle.projects.gameshowspinoff.data.SaveGameDataDatabaseDao
 import danielle.projects.gameshowspinoff.model.Prize
+import danielle.projects.gameshowspinoff.model.PrizeGameData
 import danielle.projects.gameshowspinoff.model.Question
 import danielle.projects.gameshowspinoff.model.QuestionSet
 import danielle.projects.gameshowspinoff.model.SaveGameData
@@ -12,7 +14,20 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 
-class QuestionRepository @Inject constructor(private val saveGameDataDatabaseDao: SaveGameDataDatabaseDao, private val questionDatabaseDao: QuestionDatabaseDao, private val questionSetDatabaseDao: QuestionSetDatabaseDao, private val prizeDatabaseDao: PrizeDatabaseDao) {
+class QuestionRepository @Inject constructor(private val saveGameDataDatabaseDao: SaveGameDataDatabaseDao, private val questionDatabaseDao: QuestionDatabaseDao,
+                                             private val questionSetDatabaseDao: QuestionSetDatabaseDao, private val prizeDatabaseDao: PrizeDatabaseDao,
+                                             private val prizeGameDataDatabaseDao: PrizeGameDataDatabaseDao) {
+
+    // prize related save game data
+    suspend fun getPrizeInSaveGame(saveGameDataId: Int, prizeId: Int): PrizeGameData = prizeGameDataDatabaseDao.getPrizeByGameId(saveGameDataId, prizeId)
+
+    suspend fun insertPrizeGameData(prizeGameData: PrizeGameData) = prizeGameDataDatabaseDao.insert(prizeGameData)
+
+    fun getAllPrizesInSaveGame(saveGameDataId: Int): List<PrizeGameData> = prizeGameDataDatabaseDao.getAllPrizeDataByGameId(saveGameDataId)
+
+    suspend fun updatePrizeDataInSaveGame(prizeGameData: PrizeGameData) = prizeGameDataDatabaseDao.update(prizeGameData)
+
+    suspend fun resetAllPrizesInSaveGame(saveGameDataId: Int) = prizeGameDataDatabaseDao.deleteAllPrizeDataByGameId(saveGameDataId)
 
     // basic game save data
     suspend fun getSaveGameDataInSet(setId: Int): SaveGameData = saveGameDataDatabaseDao.getSaveGameDataByQuestionSetId(setId)
@@ -20,6 +35,7 @@ class QuestionRepository @Inject constructor(private val saveGameDataDatabaseDao
     suspend fun updateSaveGameData(saveGameData: SaveGameData) = saveGameDataDatabaseDao.update(saveGameData)
 
     suspend fun deleteSaveGameData(saveGameData: SaveGameData) = saveGameDataDatabaseDao.deleteSaveGameData(saveGameData)
+
 
     suspend fun addSaveGameData(saveGameData: SaveGameData): Int = saveGameDataDatabaseDao.insert(saveGameData).toInt()
 
@@ -62,5 +78,4 @@ class QuestionRepository @Inject constructor(private val saveGameDataDatabaseDao
 
     suspend fun updatePrize(prize: Prize) = prizeDatabaseDao.update(prize)
 
-    suspend fun resetAllPrizes() = prizeDatabaseDao.resetAllPrizes()
 }

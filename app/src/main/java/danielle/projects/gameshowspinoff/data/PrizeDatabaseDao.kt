@@ -22,13 +22,10 @@ interface PrizeDatabaseDao {
     @Query("SELECT  * FROM prize_table")
     suspend fun getAllPrizesOnce(): List<Prize>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(prize: Prize)
+    suspend fun insert(prize: Prize): Long
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun update(prize: Prize)
-
-    @Query("UPDATE prize_table SET is_collected = 0, bar_position = null")
-    suspend fun resetAllPrizes()
 
     @Query("DELETE FROM prize_table")
     suspend fun deleteAll()

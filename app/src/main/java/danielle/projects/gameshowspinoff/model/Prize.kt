@@ -8,8 +8,4 @@ import androidx.room.PrimaryKey
 data class Prize(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(name = "prize_title")
-    var prizeTitle: String,
-    @ColumnInfo(name = "is_collected")
-    var isCollected: Boolean = false,
-    @ColumnInfo(name = "bar_position")
-    var barPosition: Int? = null)
+    var prizeTitle: String)

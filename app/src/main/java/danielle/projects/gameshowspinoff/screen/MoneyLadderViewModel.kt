@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import danielle.projects.gameshowspinoff.model.ColorBarStateItem
 import danielle.projects.gameshowspinoff.model.Prize
+import danielle.projects.gameshowspinoff.model.PrizeGameData
 import danielle.projects.gameshowspinoff.model.Question
 import danielle.projects.gameshowspinoff.model.SaveGameData
 import danielle.projects.gameshowspinoff.repository.QuestionRepository
@@ -72,11 +73,16 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
         bonusPrizes.value = repository.getAllPrizesOnce().toMutableList()
         for (i in 0 until bonusPrizes.value.size) {
             val prize = bonusPrizes.value[i]
-            if (prize.isCollected) {
+            var prizeGameData = repository.getPrizeInSaveGame(saveGameData.id, prize.id)
+            if (prizeGameData == null) {
+                prizeGameData = PrizeGameData(prize.id, saveGameData.id)
+                repository.insertPrizeGameData(prizeGameData = prizeGameData)
+            }
+            if (prizeGameData.isCollected) {
                 _bonusPrizesCollected.value.add(prize.prizeTitle)
             }
-            if (prize.barPosition != null) {
-                bonusPrizeLadderMap[prize.barPosition!!] = prize
+            if (prizeGameData.barPosition != null) {
+                bonusPrizeLadderMap[prizeGameData.barPosition!!] = prize
             }
             else {
                 val range = IntRange(i + (i * 20), ((i+1) * 20) - 1) /* spread them out
@@ -84,7 +90,7 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
                 (20 bars between each checkpoint) */
                 val position = range.random()
                 bonusPrizeLadderMap[position] = prize
-                repository.updatePrize(prize = prize.copy(barPosition = position))
+                repository.updatePrizeDataInSaveGame(prizeGameData = prizeGameData.copy(barPosition = position))
             }
         }
     }
@@ -206,7 +212,7 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
         setGameState(GameState.DIAL_IN_ANSWER)
         viewModelScope.launch {
             repository.resetSaveGameData(questionSetId)
-            repository.resetAllPrizes()
+            repository.resetAllPrizesInSaveGame(saveGameData.id)
         }
         _bonusPrizesCollected.value.clear()
     }
@@ -258,9 +264,10 @@ class MoneyLadderViewModel @Inject constructor(private val repository: QuestionR
     fun collectBonusPrizeIfPresent(colorBarPosition: Int) {
         if (bonusPrizeLadderMap.containsKey(colorBarPosition)) {
             val prize = bonusPrizeLadderMap[colorBarPosition]!!
-            _bonusPrizesCollected.value.add(prize.prizeTitle)
             viewModelScope.launch {
-                repository.updatePrize(prize = prize.copy(isCollected = true))
+                val prizeGameData = repository.getPrizeInSaveGame(saveGameData.id, prize.id)
+                _bonusPrizesCollected.value.add(prize.prizeTitle)
+                repository.updatePrizeDataInSaveGame(prizeGameData = prizeGameData.copy(isCollected = true))
             }
         }
     }

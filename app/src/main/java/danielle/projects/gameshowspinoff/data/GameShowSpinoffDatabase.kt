@@ -3,12 +3,13 @@ package danielle.projects.gameshowspinoff.data
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import danielle.projects.gameshowspinoff.model.Prize
+import danielle.projects.gameshowspinoff.model.PrizeGameData
 import danielle.projects.gameshowspinoff.model.Question
 import danielle.projects.gameshowspinoff.model.QuestionSet
 import danielle.projects.gameshowspinoff.model.SaveGameData
 
 
-@Database(entities = [Question::class, QuestionSet::class, Prize::class, SaveGameData::class], version = 5, exportSchema = false)
+@Database(entities = [Question::class, QuestionSet::class, Prize::class, SaveGameData::class, PrizeGameData::class], version = 7, exportSchema = false)
 abstract class GameShowSpinoffDatabase: RoomDatabase() {
 
     abstract fun questionDao(): QuestionDatabaseDao
@@ -19,4 +20,5 @@ abstract class GameShowSpinoffDatabase: RoomDatabase() {
 
     abstract fun saveGameDataDao(): SaveGameDataDatabaseDao
 
+    abstract fun prizeGameDataDao(): PrizeGameDataDatabaseDao
 }

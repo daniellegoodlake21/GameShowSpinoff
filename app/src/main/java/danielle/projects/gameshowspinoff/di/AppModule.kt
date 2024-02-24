@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import danielle.projects.gameshowspinoff.data.GameShowSpinoffDatabase
 import danielle.projects.gameshowspinoff.data.PrizeDatabaseDao
+import danielle.projects.gameshowspinoff.data.PrizeGameDataDatabaseDao
 import danielle.projects.gameshowspinoff.data.QuestionDatabaseDao
 import danielle.projects.gameshowspinoff.data.QuestionSetDatabaseDao
 import danielle.projects.gameshowspinoff.data.SaveGameDataDatabaseDao
@@ -36,6 +37,12 @@ object AppModule {
     @Provides
     fun providePrizeDao(gameDatabase: GameShowSpinoffDatabase): PrizeDatabaseDao
             = gameDatabase.prizeDao()
+
+    @Singleton
+    @Provides
+    fun providePrizeGameDataDao(gameDatabase: GameShowSpinoffDatabase): PrizeGameDataDatabaseDao
+            = gameDatabase.prizeGameDataDao()
+
     @Singleton
     @Provides
     fun provideAppDatabase(@ApplicationContext context: Context): GameShowSpinoffDatabase
